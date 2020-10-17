@@ -99,29 +99,45 @@ class _WhatsNewState extends State<WhatsNew> {
               child: FutureBuilder(
                 future: postsApi.fetchWhatsNew(),
                 builder: (context, AsyncSnapshot snapshot) {
-                  if (!snapshot.hasData ||
-                      (snapshot.connectionState == ConnectionState.waiting))
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 10,
-                          bottom: 10,
-                        ),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  Post post1 = snapshot.data[10];
-                  Post post2 = snapshot.data[15];
-                  Post post3 = snapshot.data[20];
-                  return Column(
-                    children: [
-                      _drawSingleRow(post1),
-                      _drawDivider(),
-                      _drawSingleRow(post2),
-                      _drawDivider(),
-                      _drawSingleRow(post3),
-                    ],
-                  );
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return _loading();
+                      break;
+                    case ConnectionState.active:
+                      return _loading();
+                      break;
+                    case ConnectionState.none:
+                      return _connectionError();
+                      break;
+                    case ConnectionState.done:
+                      if (snapshot.error != null) {
+                        return _error(snapshot.error);
+                      } else {
+                        if (snapshot.hasData) {
+                          List<Post> posts = snapshot.data;
+
+                          if (posts.length >= 3) {
+                            Post post1 = snapshot.data[10];
+                            Post post2 = snapshot.data[15];
+                            Post post3 = snapshot.data[20];
+                            return Column(
+                              children: [
+                                _drawSingleRow(post1),
+                                _drawDivider(),
+                                _drawSingleRow(post2),
+                                _drawDivider(),
+                                _drawSingleRow(post3),
+                              ],
+                            );
+                          } else {
+                            return _noData();
+                          }
+                        } else {
+                          return _noData();
+                        }
+                      }
+                      break;
+                  }
                 },
               ),
             ),
@@ -320,6 +336,58 @@ class _WhatsNewState extends State<WhatsNew> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _loading() {
+    return Container(
+      padding: EdgeInsets.only(
+        top: 16,
+        bottom: 16,
+      ),
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  Widget _error(var error) {
+    return Container(
+      child: Text(
+        error.toString(),
+        style: TextStyle(
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _connectionError() {
+    return Container(
+      child: Text(
+        'Connection error',
+        style: TextStyle(
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _noData() {
+    return Center(
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+        ),
+        width: double.infinity,
+        child: Text(
+          'No data avaliable!',
+          style: TextStyle(
+            color: Colors.grey,
+          ),
         ),
       ),
     );
