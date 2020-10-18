@@ -1,8 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:news_app/api/posts_api.dart';
 import 'package:news_app/models/post.dart';
-import 'package:timeago/timeago.dart' as timeago;
-import 'dart:async';
+import 'package:news_app/screens/single_post.dart';
+import 'package:news_app/utilities/data_utilities.dart';
 
 class WhatsNew extends StatefulWidget {
   @override
@@ -35,47 +37,86 @@ class _WhatsNewState extends State<WhatsNew> {
       fontSize: 18,
     );
 
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.25,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: ExactAssetImage('assets/images/bg.png'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 48,
-                right: 48,
-              ),
-              child: Text(
-                'Ho Terriers & Royals Gatecrashed Final',
-                style: _headerTitle,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 34,
-                right: 34,
-              ),
-              child: Text(
-                'lorem ipsum sit amet, consectetur adipiscing elit, sed do eiusmod.',
-                style: _headerDescription,
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return FutureBuilder(
+      future: postsApi.fetchPostsByCategoryId("1"),
+      builder: (context, AsyncSnapshot snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return loading();
+            break;
+          case ConnectionState.active:
+            return loading();
+            break;
+          case ConnectionState.none:
+            return connectionError();
+            break;
+          case ConnectionState.done:
+            if (snapshot.error != null) {
+              return error(snapshot.error);
+            } else {
+              List<Post> posts = snapshot.data;
+              Random random = Random();
+              int randomIndex = random.nextInt(posts.length);
+              Post post = posts[randomIndex];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return SinglePost(post);
+                      },
+                    ),
+                  );
+                },
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.25,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(post.image),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 48,
+                            right: 48,
+                          ),
+                          child: Text(
+                            post.title,
+                            style: _headerTitle,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 34,
+                            right: 34,
+                          ),
+                          child: Text(
+                            '${post.content.substring(0, 70).trim()}...',
+                            style: _headerDescription,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            break;
+        }
+      },
     );
   }
 
@@ -97,21 +138,21 @@ class _WhatsNewState extends State<WhatsNew> {
             child: Card(
               elevation: 7,
               child: FutureBuilder(
-                future: postsApi.fetchWhatsNew(),
+                future: postsApi.fetchPostsByCategoryId("1"),
                 builder: (context, AsyncSnapshot snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
-                      return _loading();
+                      return loading();
                       break;
                     case ConnectionState.active:
-                      return _loading();
+                      return loading();
                       break;
                     case ConnectionState.none:
-                      return _connectionError();
+                      return connectionError();
                       break;
                     case ConnectionState.done:
                       if (snapshot.error != null) {
-                        return _error(snapshot.error);
+                        return error(snapshot.error);
                       } else {
                         if (snapshot.hasData) {
                           List<Post> posts = snapshot.data;
@@ -130,10 +171,10 @@ class _WhatsNewState extends State<WhatsNew> {
                               ],
                             );
                           } else {
-                            return _noData();
+                            return noData();
                           }
                         } else {
-                          return _noData();
+                          return noData();
                         }
                       }
                       break;
@@ -150,29 +191,51 @@ class _WhatsNewState extends State<WhatsNew> {
   Widget _drawRecentUpdates() {
     return Padding(
       padding: EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 10,
-              top: 5,
-            ),
-            child: _drawSectionTitle('Recent Updates'),
+      child: FutureBuilder(
+          future: postsApi.fetchPostsByCategoryId("2"),
+          builder: (context, AsyncSnapshot snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return loading();
+                break;
+              case ConnectionState.active:
+                return loading();
+                break;
+              case ConnectionState.none:
+                return connectionError();
+                break;
+              case ConnectionState.done:
+                if (snapshot.hasError) {
+                  return error(snapshot.error);
+                } else {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 10,
+                          top: 5,
+                        ),
+                        child: _drawSectionTitle('Recent Updates'),
+                      ),
+                      _drawRecentCard(
+                        Colors.deepOrange,
+                        snapshot.data[5],
+                      ),
+                      _drawRecentCard(
+                        Colors.teal,
+                        snapshot.data[6],
+                      ),
+                      SizedBox(
+                        height: 35,
+                      )
+                    ],
+                  );
+                } //else
+                break;
+            } //switch
+          } // builder
           ),
-          _drawRecentCard(
-            'Sport',
-            Colors.deepOrange,
-          ),
-          _drawRecentCard(
-            'Sport',
-            Colors.teal,
-          ),
-          SizedBox(
-            height: 35,
-          )
-        ],
-      ),
     );
   }
 
@@ -185,66 +248,72 @@ class _WhatsNewState extends State<WhatsNew> {
   Widget _drawSingleRow(Post post) {
     return Padding(
       padding: const EdgeInsets.all(14.0),
-      child: Row(
-        children: [
-          SizedBox(
-            height: 110,
-            width: 120,
-            child: Image(
-              image: ExactAssetImage('assets/images/bg.jpg'),
-              fit: BoxFit.cover,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return SinglePost(post);
+              },
             ),
-          ),
-          SizedBox(
-            width: 16,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  post.title,
-                  maxLines: 2,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+          );
+        },
+        child: Row(
+          children: [
+            SizedBox(
+              height: 110,
+              width: 120,
+              child: Image.network(
+                post.image,
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(
+              width: 16,
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    post.title,
+                    maxLines: 2,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 18,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Michael Adam',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.timer,
-                          color: Colors.grey,
-                        ),
-                        Text(
-                          _parseHumanDateTime(post.dateWritten),
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-              ],
+                  SizedBox(
+                    height: 18,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Michael Adam',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.timer,
+                            color: Colors.grey,
+                          ),
+                          Text(
+                            parseHumanDateTime(post.dateWritten),
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  String _parseHumanDateTime(String dateTime) {
-    Duration timeAgo = DateTime.now().difference(DateTime.parse(dateTime));
-    DateTime theDifference = DateTime.now().subtract(timeAgo);
-    return timeago.format(theDifference);
   }
 
   Widget _drawSectionTitle(String title) {
@@ -258,135 +327,96 @@ class _WhatsNewState extends State<WhatsNew> {
     );
   }
 
-  Widget _drawRecentCard(String title, Color color) {
+  Widget _drawRecentCard(Color color, Post post) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Card(
-        elevation: 7,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.25,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: ExactAssetImage('assets/images/bg1.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return SinglePost(post);
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 16,
-                bottom: 6,
-                right: 16,
-                left: 16,
-              ),
-              child: Container(
-                padding: EdgeInsets.only(
-                  top: 2,
-                  bottom: 2,
-                  left: 24,
-                  right: 24,
-                ),
+          );
+        },
+        child: Card(
+          elevation: 7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                height: MediaQuery.of(context).size.height * 0.25,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: color,
-                ),
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                  image: DecorationImage(
+                    image: NetworkImage(post.image),
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 3, left: 16, right: 10, bottom: 10),
-              child: Text(
-                'Vettel is Ferrari Number One - Hamilton',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 16,
+                  bottom: 6,
+                  right: 16,
+                  left: 16,
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                bottom: 6,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.timer,
-                    color: Colors.grey,
+                child: Container(
+                  padding: EdgeInsets.only(
+                    top: 2,
+                    bottom: 2,
+                    left: 24,
+                    right: 24,
                   ),
-                  Text(
-                    '15 min',
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: color,
+                  ),
+                  child: Text(
+                    'Sport',
                     style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 17,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _loading() {
-    return Container(
-      padding: EdgeInsets.only(
-        top: 16,
-        bottom: 16,
-      ),
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-  Widget _error(var error) {
-    return Container(
-      child: Text(
-        error.toString(),
-        style: TextStyle(
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
-
-  Widget _connectionError() {
-    return Container(
-      child: Text(
-        'Connection error',
-        style: TextStyle(
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
-
-  Widget _noData() {
-    return Center(
-      child: Container(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-        ),
-        width: double.infinity,
-        child: Text(
-          'No data avaliable!',
-          style: TextStyle(
-            color: Colors.grey,
+              Padding(
+                padding:
+                    EdgeInsets.only(top: 3, left: 16, right: 10, bottom: 10),
+                child: Text(
+                  post.title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: 6,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.timer,
+                      color: Colors.grey,
+                    ),
+                    Text(
+                      parseHumanDateTime(post.dateWritten),
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 17,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -394,7 +424,4 @@ class _WhatsNewState extends State<WhatsNew> {
   }
 }
 
-// Image.network(
-//               post.image,
-//               fit: BoxFit.cover,
-//             ),
+// NetworkImage(post.image),

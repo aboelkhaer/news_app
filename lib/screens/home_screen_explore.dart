@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:news_app/screens/home_tabs.dart/favorite.dart';
 import 'package:news_app/screens/home_tabs.dart/popular.dart';
 import 'package:news_app/screens/home_tabs.dart/whats_new.dart';
+import 'package:news_app/screens/pages/about.dart';
+import 'package:news_app/screens/pages/contact.dart';
+import 'package:news_app/screens/pages/help.dart';
+import 'package:news_app/screens/pages/settings.dart';
 import 'package:news_app/shared_ui/my_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -98,7 +102,50 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ];
       },
-      onSelected: (PopOutMenu menu) {},
+      onSelected: (PopOutMenu menu) {
+        switch (menu) {
+          case PopOutMenu.Help:
+            return Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return HelpUs();
+                },
+              ),
+            );
+            break;
+          case PopOutMenu.About:
+            return Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return AboutUs();
+                },
+              ),
+            );
+            break;
+          case PopOutMenu.Contact:
+            return Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return ContactUs();
+                },
+              ),
+            );
+            break;
+          case PopOutMenu.Setting:
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return Settings();
+                },
+              ),
+            );
+            break;
+        }
+      },
       icon: Icon(Icons.more_vert),
     );
   }

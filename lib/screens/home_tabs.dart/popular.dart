@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:news_app/api/posts_api.dart';
+import 'package:news_app/models/post.dart';
+import 'package:news_app/screens/single_post.dart';
+import 'package:news_app/utilities/data_utilities.dart';
 
 class Popular extends StatefulWidget {
   @override
@@ -6,73 +10,110 @@ class Popular extends StatefulWidget {
 }
 
 class _PopularState extends State<Popular> {
+  PostsApi postsApi = PostsApi();
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemBuilder: (context, position) {
-        return Card(
-          child: _drawSingleRow(),
-        );
+    return FutureBuilder(
+      future: postsApi.fetchPostsByCategoryId("3"),
+      builder: (context, AsyncSnapshot snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return loading();
+            break;
+          case ConnectionState.active:
+            return loading();
+            break;
+          case ConnectionState.none:
+            return connectionError();
+            break;
+          case ConnectionState.done:
+            if (snapshot.hasError) {
+              return error(snapshot.error);
+            } else {
+              List<Post> posts = snapshot.data;
+              return ListView.builder(
+                itemBuilder: (context, position) {
+                  return Card(
+                    child: _drawSingleRow(posts[position]),
+                  );
+                },
+                itemCount: posts.length,
+              );
+            }
+
+            break;
+        }
       },
-      itemCount: 10,
     );
   }
 
-  Widget _drawSingleRow() {
+  Widget _drawSingleRow(Post post) {
     return Padding(
       padding: const EdgeInsets.all(14.0),
-      child: Row(
-        children: [
-          SizedBox(
-            height: 110,
-            width: 120,
-            child: Image(
-              image: ExactAssetImage('assets/images/bg.jpg'),
-              fit: BoxFit.cover,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return SinglePost(post);
+              },
             ),
-          ),
-          SizedBox(
-            width: 16,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  'The Wold Global Warming AnnualSummit',
-                  maxLines: 2,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+          );
+        },
+        child: Row(
+          children: [
+            SizedBox(
+              height: 110,
+              width: 120,
+              child: Image(
+                image: NetworkImage(post.image),
+                fit: BoxFit.cover,
+              ),
+            ),
+            SizedBox(
+              width: 16,
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    post.title,
+                    maxLines: 2,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 18,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Michael Adam',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.timer,
-                          color: Colors.grey,
-                        ),
-                        Text(
-                          '15 min',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-              ],
+                  SizedBox(
+                    height: 18,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Michael Adam',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.timer,
+                            color: Colors.grey,
+                          ),
+                          Text(
+                            parseHumanDateTime(post.dateWritten),
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

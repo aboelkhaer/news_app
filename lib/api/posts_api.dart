@@ -4,9 +4,9 @@ import 'package:news_app/utilities/api_utilities.dart';
 import 'package:news_app/models/post.dart';
 
 class PostsApi {
-  Future<List<Post>> fetchWhatsNew() async {
+  Future<List<Post>> fetchPostsByCategoryId(String id) async {
     List<Post> posts = List<Post>();
-    String whatsNewApiUrl = base_api + whats_new_api;
+    String whatsNewApiUrl = base_api + categories_api + id;
     var response = await http.get(whatsNewApiUrl);
     if (response.statusCode == 200) {
       var jsonData = jsonDecode(response.body);
