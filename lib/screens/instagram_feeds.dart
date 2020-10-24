@@ -8,6 +8,7 @@ class InstagramFeeds extends StatefulWidget {
 
 class _InstagramFeedsState extends State<InstagramFeeds> {
   TextStyle _hashTagStyle = TextStyle(color: Colors.orange);
+  List<int> ids = [0, 3];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +28,7 @@ class _InstagramFeedsState extends State<InstagramFeeds> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _drawHeader(),
+                _drawHeader(position),
                 _drawTitle(),
                 _drawHashtags(),
                 _dawBody(),
@@ -41,7 +42,7 @@ class _InstagramFeedsState extends State<InstagramFeeds> {
     );
   }
 
-  Widget _drawHeader() {
+  Widget _drawHeader(int position) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -85,8 +86,17 @@ class _InstagramFeedsState extends State<InstagramFeeds> {
           children: [
             IconButton(
               icon: Icon(Icons.favorite),
-              onPressed: () {},
-              color: Colors.grey.shade400,
+              onPressed: () {
+                setState(() {
+                  if (ids.contains(position)) {
+                    ids.remove(position);
+                  } else {
+                    ids.add(position);
+                  }
+                });
+              },
+              color:
+                  (ids.contains(position)) ? Colors.red : Colors.grey.shade400,
             ),
             Transform.translate(
               offset: Offset(-11, 0),

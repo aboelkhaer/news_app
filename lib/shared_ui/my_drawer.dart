@@ -4,7 +4,10 @@ import 'package:news_app/screens/facebook_feeds.dart';
 import 'package:news_app/screens/heedline_news.dart';
 import 'package:news_app/screens/home_screen_explore.dart';
 import 'package:news_app/screens/instagram_feeds.dart';
+import 'package:news_app/screens/pages/login.dart';
 import 'package:news_app/screens/twitter_feeds.dart';
+import 'package:news_app/utilities/app_utilities.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyDrawer extends StatefulWidget {
   @override
@@ -12,16 +15,53 @@ class MyDrawer extends StatefulWidget {
 }
 
 class _MyDrawerState extends State<MyDrawer> {
+  bool isLoggedIn = false;
+  String token;
+  SharedPreferences sharedPreferences;
+
+  _checkToken() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+
+    token = sharedPreferences.get('token');
+    setState(() {
+      if (token == null) {
+        isLoggedIn = false;
+      } else {
+        isLoggedIn = true;
+      }
+    });
+  }
+
   List<NavMenuItem> navigationMenu = [
     NavMenuItem('Explore', () => HomeScreen()),
     NavMenuItem('Headline News', () => HeadLineNews()),
     NavMenuItem('Twitter Feeds', () => TwitterFeeds()),
     NavMenuItem('Instagram Feeds', () => InstagramFeeds()),
     NavMenuItem('Facebook Feeds', () => FacebookFeeds()),
+    NavMenuItem('Login', () => Login()),
+    // NavMenuItem('Register', () => FacebookFeeds()),
   ];
+
+  _logout() {
+    if (sharedPreferences != null) {
+      sharedPreferences.remove('token');
+    }
+    return HomeScreen();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (isLoggedIn == true) {
+      navigationMenu.add(NavMenuItem('Logout', _logout));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (this.mounted) {
+      _checkToken();
+    }
     return Drawer(
       child: Padding(
         padding: const EdgeInsets.only(

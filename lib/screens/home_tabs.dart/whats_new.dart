@@ -5,6 +5,7 @@ import 'package:news_app/api/posts_api.dart';
 import 'package:news_app/models/post.dart';
 import 'package:news_app/screens/single_post.dart';
 import 'package:news_app/utilities/data_utilities.dart';
+import 'package:bordered_text/bordered_text.dart';
 
 class WhatsNew extends StatefulWidget {
   @override
@@ -28,8 +29,8 @@ class _WhatsNewState extends State<WhatsNew> {
 
   Widget _drawHeader() {
     TextStyle _headerTitle = TextStyle(
-      color: Colors.white,
       fontSize: 22,
+      color: Colors.white,
       fontWeight: FontWeight.w600,
     );
     TextStyle _headerDescription = TextStyle(
@@ -87,10 +88,14 @@ class _WhatsNewState extends State<WhatsNew> {
                             left: 48,
                             right: 48,
                           ),
-                          child: Text(
-                            post.title,
-                            style: _headerTitle,
-                            textAlign: TextAlign.center,
+                          child: BorderedText(
+                            strokeColor: Colors.black,
+                            strokeWidth: 3,
+                            child: Text(
+                              post.title,
+                              style: _headerTitle,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                         SizedBox(
@@ -101,10 +106,14 @@ class _WhatsNewState extends State<WhatsNew> {
                             left: 34,
                             right: 34,
                           ),
-                          child: Text(
-                            '${post.content.substring(0, 70).trim()}...',
-                            style: _headerDescription,
-                            textAlign: TextAlign.center,
+                          child: BorderedText(
+                            strokeColor: Colors.black,
+                            strokeWidth: 3,
+                            child: Text(
+                              '${post.content.substring(0, 70).trim()}...',
+                              style: _headerDescription,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       ],
